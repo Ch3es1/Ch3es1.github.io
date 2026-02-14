@@ -14,8 +14,13 @@ h6 {color: white;}
 
 p {color: white;}
 
-div{
-    width: 100px;
-    height: 100px;
-    background-color: red;
+.box {
+    width: 200px;
+    height: 200px;
+    background-color: green;
+    color: white;
+    margin: 10px;
+    padding: 10px;
+    border: 2px solid white;
+    float: left;
 }
