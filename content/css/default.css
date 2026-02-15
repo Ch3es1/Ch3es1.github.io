@@ -34,3 +34,14 @@ p {color: white;}
     height: 10%;
     padding: 5%;
 }
+
+.small_center{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    margin: auto;
+    width: 10%;
+    height: 2%;
+    padding: 1%;
+}
