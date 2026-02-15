@@ -2,9 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Function Tweaker</title>
 <style>
+    html, body { margin: 0; padding: 0; height: 100%; }
     body {
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         background: #121212;
@@ -12,281 +13,216 @@
         display: flex;
         justify-content: center;
         align-items: flex-start;
-        padding: 50px;
+        height: 100%;
+        overflow: hidden;
     }
     .calculator {
         background: #1e1e1e;
         border-radius: 12px;
-        padding: 30px;
+        padding: 20px;
         box-shadow: 0 8px 20px rgba(0,0,0,0.5);
-        width: 650px;
-        position: relative;
-    }
-    input, button {
-        padding: 10px;
-        margin: 5px 0;
-        border-radius: 6px;
-        border: 1px solid #555;
-        font-size: 16px;
-        background: #2c2c2c;
-        color: #e0e0e0;
-    }
-    input::placeholder {
-        color: #aaa;
-    }
-    .variables input {
-        width: calc(100% - 90px);
-        background: #2c2c2c;
-        border: 1px solid #555;
-        color: #e0e0e0;
-    }
-    .variables div {
+        width: 95%;
+        max-width: 1600px;
+        height: 90%;
         display: flex;
-        justify-content: flex-start;
-        align-items: center;
-        margin-bottom: 5px;
+        flex-direction: row;
+        flex-wrap: wrap;
     }
-    .variables button {
-        margin-left: 10px;
-        padding: 0 6px;
-        font-size: 13px;
-        height: 28px;
-        flex-shrink: 0;
-    }
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 15px;
-        background: #1e1e1e;
-        color: #e0e0e0;
-    }
-    table, th, td {
-        border: 1px solid #555;
-    }
-    th, td {
-        padding: 8px;
-        text-align: center;
-    }
-    button:hover {
-        background: #007bff;
-        color: white;
-        cursor: pointer;
-        border: none;
-    }
-    #backBtn {
-        position: fixed;
-        top: 20px;
-        left: 20px;
-        background: #333;
-        color: #e0e0e0;
-        border: none;
-        border-radius: 6px;
-        padding: 8px 14px;
-        font-size: 14px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-        transition: all 0.2s ease;
-        z-index: 1000;
-    }
-    #backBtn:hover {
-        background: #007bff;
-        color: white;
-        transform: scale(1.05);
-    }
-    #docs {
-        margin-top: 20px;
+    .graph {
+        flex: 2;
+        margin-right: 20px;
         background: #2a2a2a;
-        padding: 15px;
-        border-radius: 8px;
-        font-size: 14px;
-        max-height: 200px;
+        border-radius: 10px;
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        min-width: 300px;
+    }
+    .graph-controls {
+        margin-top: 10px;
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+    }
+    .main {
+        flex: 3;
+        display: flex;
+        flex-direction: column;
         overflow-y: auto;
+        min-width: 350px;
     }
-    #docs h3 {
-        margin-top: 0;
-        color: #ffffff;
+    .templates {
+        flex: 1;
+        background: #2a2a2a;
+        border-radius: 10px;
+        padding: 15px;
+        max-height: 100%;
+        overflow-y: auto;
+        margin-left: 20px;
+        min-width: 200px;
     }
-    #docs ul {
-        padding-left: 20px;
-    }
-    #docs li {
-        margin-bottom: 4px;
+    textarea, button { padding: 10px; margin: 5px 0; border-radius: 6px; border: 1px solid #555; font-size: 16px; background: #2c2c2c; color: #e0e0e0; }
+    textarea::placeholder { color: #aaa; }
+    textarea { width: 100%; min-height: 60px; resize: vertical; }
+    .variables input { width: calc(100% - 90px); }
+    .variables div { display: flex; align-items: center; margin-bottom: 5px; }
+    .variables button { margin-left: 10px; padding: 0 6px; font-size: 13px; height: 28px; flex-shrink: 0; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #1e1e1e; color: #e0e0e0; }
+    table, th, td { border: 1px solid #555; }
+    th, td { padding: 8px; text-align: center; }
+    button:hover { background: #007bff; color: white; cursor: pointer; border: none; }
+    #backBtn { position: fixed; top: 20px; left: 20px; background: #333; color: #e0e0e0; border: none; border-radius: 6px; padding: 8px 14px; font-size: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: all 0.2s ease; z-index: 1000; }
+    #backBtn:hover { background: #007bff; color: white; transform: scale(1.05); }
+    .template-btn { width: 100%; margin-bottom: 8px; text-align: left; padding: 6px; font-size: 14px; }
+    @media (max-width: 1000px) {
+        .calculator { flex-direction: column; }
+        .graph, .main, .templates { margin: 10px 0; width: 100%; }
     }
 </style>
 </head>
 <body>
 <div class="calculator">
-    <button id="backBtn">Back</button>
-    <h2>Function Tweaker</h2>
-    <label>Enter function (supports full Math functions, factorial (!), gcd(a,b), modulo, etc.):</label>
-    <input id="functionInput" placeholder="e.g., sin(x) + cos(y) + abs(z)">
+    <div class="graph">
+        <canvas id="miniGraph"></canvas>
+        <div class="graph-controls">
+            <span id="pointDisplay">(x, y): (-,-)</span>
+        </div>
+    </div>
+    <div class="main">
+        <button id="backBtn">Back</button>
+        <h2>Function Tweaker</h2>
+        <label>Enter function (supports full Math functions, factorial (!), gcd(a,b), modulo, etc.):</label>
+        <textarea id="functionInput" placeholder="e.g., sin(x) + cos(y) + abs(z)"></textarea>
 
-    <h3>Variables</h3>
-    <div class="variables" id="variablesDiv"></div>
-    <button id="addVarBtn">Add Variable</button>
+        <h3>Variables</h3>
+        <div class="variables" id="variablesDiv"></div>
+        <button id="addVarBtn">Add Variable</button>
 
-    <h3>x-values Table</h3>
-    <table id="valuesTable">
-        <thead>
-            <tr><th>x</th><th>f(x)</th></tr>
-        </thead>
-        <tbody>
-            <tr><td contenteditable='true'></td><td>-</td></tr>
-        </tbody>
-    </table>
-
-    <div id="docs">
-        <h3>Available Functions & Operations:</h3>
-        <ul>
-            <li>Trig: sin(x), cos(x), tan(x)</li>
-            <li>Exponential & Log: exp(x), log(x)</li>
-            <li>Root & Power: sqrt(x), x^y</li>
-            <li>Rounding: ceil(x), floor(x)</li>
-            <li>Absolute value: abs(x)</li>
-            <li>Random: random()</li>
-            <li>Factorial: n! (e.g., 5!)</li>
-            <li>Greatest common divisor: gcd(a,b)</li>
-            <li>Least common multiple: lcm(a,b)</li>
-            <li>Remainder/modulo: rem(a,b)</li>
-            <li>Variables: define any variable with "Add Variable" and use in function (can also remove)</li>
-        </ul>
+        <h3>x-values Table</h3>
+        <table id="valuesTable">
+            <thead><tr><th>x</th><th>f(x)</th></tr></thead>
+            <tbody><tr><td contenteditable='true'></td><td>-</td></tr></tbody>
+        </table>
+    </div>
+    <div class="templates">
+        <h3>Function Templates</h3>
+        <div id="templateButtons"></div>
     </div>
 </div>
 
+<script id="templateData" type="application/json">
+{
+    "TEMPLATES": {
+        "Quadratic Function": { "equation": "a*x^2 + b*x + c", "vars": ["a", "b", "c"] },
+        "General Absolute Value Form": { "equation": "A*abs(B*x+C)-D", "vars": ["A", "B", "C", "D"] }
+    }
+}
+</script>
+
 <script>
 let variables = {};
+let scale = 30;
+let offsetX = 0;
+let offsetY = 0;
+let isDragging = false;
+let dragStart = {x:0,y:0};
 
-function addVariable() {
-    let name = prompt("Enter variable name (e.g., y):");
-    if(name && !variables[name]) {
-        variables[name] = 0;
-        renderVariables();
+const canvas=document.getElementById('miniGraph');
+canvas.width=canvas.parentElement.clientWidth-20;
+canvas.height=canvas.parentElement.clientHeight-80;
+const ctx=canvas.getContext('2d');
+
+function addVariable(){ let name=prompt("Enter variable name (e.g., y):"); if(name && !variables[name]){variables[name]=0;renderVariables();} }
+function removeVariable(name){ delete variables[name]; renderVariables(); }
+function renderVariables(){ const div=document.getElementById('variablesDiv'); div.innerHTML=''; for(let v in variables){ const varDiv=document.createElement('div'); const label=document.createElement('label'); label.textContent=v+': '; label.style.marginRight='10px'; const input=document.createElement('input'); input.type='number'; input.value=variables[v]; input.onchange=()=>updateVariable(v,input.value); const removeBtn=document.createElement('button'); removeBtn.textContent='Remove'; removeBtn.style.padding='0 6px'; removeBtn.style.fontSize='13px'; removeBtn.style.height='24px'; removeBtn.onclick=()=>removeVariable(v); varDiv.appendChild(label); varDiv.appendChild(input); varDiv.appendChild(removeBtn); div.appendChild(varDiv); } calculateResult(); drawMiniGraph(); }
+function applyTemplate(func,vars){ variables={}; for(let v of vars) variables[v]=0; document.getElementById('functionInput').value=func; renderVariables(); }
+function loadTemplates(){ const data=JSON.parse(document.getElementById('templateData').textContent); const container=document.getElementById('templateButtons'); container.innerHTML=''; for(let name in data.TEMPLATES){ const temp=data.TEMPLATES[name]; const btn=document.createElement('button'); btn.textContent=name; btn.className='template-btn'; btn.onclick=()=>applyTemplate(temp.equation,temp.vars); container.appendChild(btn); } }
+function updateVariable(name,value){ variables[name]=parseFloat(value); calculateResult(); drawMiniGraph(); }
+function factorial(n){return n<=1?1:n*factorial(n-1);} function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b];}return a;} function lcm(a,b){return Math.abs(a*b)/gcd(a,b);} function rem(a,b){return a%b;}
+function parseFunction(funcStr){ funcStr=funcStr.replace(/\^/g,'**'); funcStr=funcStr.replace(/\bsin\(/g,'Math.sin(').replace(/\bcos\(/g,'Math.cos(').replace(/\btan\(/g,'Math.tan(').replace(/\babs\(/g,'Math.abs(').replace(/\bsqrt\(/g,'Math.sqrt(').replace(/\blog\(/g,'Math.log(').replace(/\bexp\(/g,'Math.exp(').replace(/\bceil\(/g,'Math.ceil(').replace(/\bfloor\(/g,'Math.floor(').replace(/\brandom\(/g,'Math.random('); funcStr=funcStr.replace(/([0-9\)a-zA-Z]+)!/g,'factorial($1)'); return funcStr; }
+function calculateFunction(x){ let funcStr=parseFunction(document.getElementById('functionInput').value); try{ let func=new Function('x',...Object.keys(variables),'factorial','gcd','lcm','rem',`return ${funcStr};`); return func(x,...Object.values(variables),factorial,gcd,lcm,rem); } catch(e){ return NaN;} }
+function calculateResult(){ const tbody=document.getElementById('valuesTable').querySelector('tbody'); Array.from(tbody.rows).forEach(row=>{ let x=parseFloat(row.cells[0].textContent); row.cells[1].textContent=!isNaN(x)?calculateFunction(x):'-'; }); removeEmptyRows(); }
+function addXValueRowIfNeeded(){ const tbody=document.getElementById('valuesTable').querySelector('tbody'); const lastRow=tbody.rows[tbody.rows.length-1]; if(lastRow.cells[0].textContent!==''){ const newRow=document.createElement('tr'); newRow.innerHTML=`<td contenteditable='true'></td><td>-</td>`; tbody.appendChild(newRow); } }
+function removeEmptyRows(){ const tbody=document.getElementById('valuesTable').querySelector('tbody'); for(let i=tbody.rows.length-2;i>=0;i--){ if(tbody.rows[i].cells[0].textContent.trim()===''){tbody.deleteRow(i);} } }
+
+function drawMiniGraph(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    const w=canvas.width,h=canvas.height;
+    let gridStep = scale;
+    let labelStep = 1;
+    while(gridStep < 30){ gridStep *= 2; labelStep *= 2; }
+
+    ctx.strokeStyle='#444'; ctx.lineWidth=1; ctx.font='10px Arial'; ctx.fillStyle='#aaa';
+
+    const startX = Math.floor((-offsetX - w/2)/gridStep);
+    const endX = Math.ceil((-offsetX + w/2)/gridStep);
+    const startY = Math.floor((offsetY - h/2)/gridStep);
+    const endY = Math.ceil((offsetY + h/2)/gridStep);
+
+    for(let i=startX;i<=endX;i++){
+        const xPix=w/2 + i*gridStep + offsetX;
+        ctx.beginPath(); ctx.moveTo(xPix,0); ctx.lineTo(xPix,h); ctx.stroke();
+        if(Math.abs(xPix-w/2-offsetX) > 5) ctx.fillText((i*labelStep).toString(), xPix-5, h/2+15+offsetY);
     }
-}
-
-function removeVariable(name) {
-    delete variables[name];
-    renderVariables();
-}
-
-function renderVariables() {
-    const div = document.getElementById('variablesDiv');
-    div.innerHTML = '';
-    for(let v in variables){
-        const varDiv = document.createElement('div');
-        varDiv.style.display = 'flex';
-        varDiv.style.alignItems = 'center';
-
-        const label = document.createElement('label');
-        label.textContent = v + ': ';
-        label.style.marginRight = '10px';
-
-        const input = document.createElement('input');
-        input.type = 'number';
-        input.value = variables[v];
-        input.onchange = () => updateVariable(v, input.value);
-
-        const removeBtn = document.createElement('button');
-        removeBtn.textContent = 'Remove';
-        removeBtn.style.padding = '0 6px';
-        removeBtn.style.fontSize = '13px';
-        removeBtn.style.height = '24px';
-        removeBtn.onclick = () => removeVariable(v);
-
-        varDiv.appendChild(label);
-        varDiv.appendChild(input);
-        varDiv.appendChild(removeBtn);
-
-        div.appendChild(varDiv);
+    for(let i=startY;i<=endY;i++){
+        const yPix=h/2 - i*gridStep + offsetY;
+        ctx.beginPath(); ctx.moveTo(0,yPix); ctx.lineTo(w,yPix); ctx.stroke();
+        if(Math.abs(yPix-h/2+offsetY) > 5) ctx.fillText((i*labelStep).toString(), w/2+5+offsetX, yPix+3);
     }
-    calculateResult();
-}
 
-function updateVariable(name, value) {
-    variables[name] = parseFloat(value);
-    calculateResult();
-}
+    ctx.strokeStyle='#888'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(0,h/2+offsetY); ctx.lineTo(w,h/2+offsetY);
+    ctx.moveTo(w/2+offsetX,0); ctx.lineTo(w/2+offsetX,h);
+    ctx.stroke();
 
-function factorial(n) {
-    return n <= 1 ? 1 : n * factorial(n - 1);
-}
+    ctx.strokeStyle='#00ff00'; ctx.lineWidth=2; ctx.beginPath();
+    for(let i=0;i<w;i++){ let x=(i-w/2-offsetX)/scale; let yVal=calculateFunction(x); if(isNaN(yVal)) continue; let y=h/2-yVal*scale+offsetY; if(i===0) ctx.moveTo(i,y); else ctx.lineTo(i,y); }
+    ctx.stroke();
 
-function gcd(a,b){
-    a = Math.abs(a); b = Math.abs(b);
-    while(b){ [a,b] = [b,a % b]; }
-    return a;
-}
-
-function lcm(a,b){
-    return Math.abs(a*b)/gcd(a,b);
-}
-
-function rem(a,b){
-    return a % b;
-}
-
-function parseFunction(funcStr) {
-    funcStr = funcStr.replace(/\^/g, '**');
-    funcStr = funcStr.replace(/\bsin\(/g,'Math.sin(')
-                       .replace(/\bcos\(/g,'Math.cos(')
-                       .replace(/\btan\(/g,'Math.tan(')
-                       .replace(/\babs\(/g,'Math.abs(')
-                       .replace(/\bsqrt\(/g,'Math.sqrt(')
-                       .replace(/\blog\(/g,'Math.log(')
-                       .replace(/\bexp\(/g,'Math.exp(')
-                       .replace(/\bceil\(/g,'Math.ceil(')
-                       .replace(/\bfloor\(/g,'Math.floor(')
-                       .replace(/\brandom\(/g,'Math.random(');
-    funcStr = funcStr.replace(/([0-9\)a-zA-Z]+)!/g,'factorial($1)');
-    return funcStr;
-}
-
-function calculateFunction(x) {
-    let funcStr = parseFunction(document.getElementById('functionInput').value);
-    try {
-        let func = new Function('x', ...Object.keys(variables), 'factorial','gcd','lcm','rem', `return ${funcStr};`);
-        return func(x, ...Object.values(variables), factorial, gcd, lcm, rem);
-    } catch(e) {
-        return 'Error';
-    }
-}
-
-function calculateResult() {
-    const tbody = document.getElementById('valuesTable').querySelector('tbody');
-    Array.from(tbody.rows).forEach(row => {
-        let x = parseFloat(row.cells[0].textContent);
-        row.cells[1].textContent = !isNaN(x) ? calculateFunction(x) : '-';
-    });
-    removeEmptyRows();
-}
-
-function addXValueRowIfNeeded() {
-    const tbody = document.getElementById('valuesTable').querySelector('tbody');
-    const lastRow = tbody.rows[tbody.rows.length-1];
-    if(lastRow.cells[0].textContent !== ''){
-        const newRow = document.createElement('tr');
-        newRow.innerHTML = `<td contenteditable='true'></td><td>-</td>`;
-        tbody.appendChild(newRow);
-    }
-}
-
-function removeEmptyRows() {
-    const tbody = document.getElementById('valuesTable').querySelector('tbody');
-    for(let i = tbody.rows.length - 2; i >= 0; i--) {
-        if(tbody.rows[i].cells[0].textContent.trim() === '') {
-            tbody.deleteRow(i);
+    const tbody=document.getElementById('valuesTable').querySelector('tbody');
+    ctx.strokeStyle='#ff5555'; ctx.lineWidth=1.5;
+    Array.from(tbody.rows).forEach(row=>{
+        let xVal=parseFloat(row.cells[0].textContent);
+        if(!isNaN(xVal)){
+            let xPix=w/2 + xVal*scale + offsetX;
+            ctx.beginPath(); ctx.moveTo(xPix,0); ctx.lineTo(xPix,h); ctx.stroke();
         }
-    }
+    });
 }
+
+canvas.addEventListener('mousedown', e=>{ isDragging=true; dragStart={x:e.clientX, y:e.clientY}; });
+canvas.addEventListener('mouseup', e=>{ isDragging=false; });
+canvas.addEventListener('mouseleave', e=>{ isDragging=false; });
+canvas.addEventListener('mousemove', e=>{
+    const rect=canvas.getBoundingClientRect();
+    const w=canvas.width,h=canvas.height;
+    if(isDragging){ offsetX += e.clientX-dragStart.x; offsetY += e.clientY-dragStart.y; dragStart={x:e.clientX,y:e.clientY}; drawMiniGraph(); }
+    let mx=e.clientX-rect.left; let x=(mx-w/2-offsetX)/scale; let yVal=calculateFunction(x);
+    document.getElementById('pointDisplay').textContent=`(x, y): (${x.toFixed(2)}, ${yVal.toFixed(2)})`;
+});
+
+// Zoom with wheel
+canvas.addEventListener('wheel', e=>{
+    e.preventDefault();
+    const zoom = e.deltaY<0?1.1:0.9;
+    scale*=zoom;
+    drawMiniGraph();
+});
+
+window.addEventListener('resize', ()=>{
+    canvas.width=canvas.parentElement.clientWidth-20;
+    canvas.height=canvas.parentElement.clientHeight-80;
+    drawMiniGraph();
+});
 
 document.getElementById('addVarBtn').addEventListener('click', addVariable);
-document.getElementById('valuesTable').addEventListener('input', function(e){
-    calculateResult();
-    addXValueRowIfNeeded();
-});
-document.getElementById('functionInput').addEventListener('input', calculateResult);
-document.getElementById('backBtn').addEventListener('click', function(){
-    window.location.href = '../content/pages/section2.html';
-});
+document.getElementById('valuesTable').addEventListener('input', ()=>{calculateResult(); addXValueRowIfNeeded(); drawMiniGraph();});
+document.getElementById('functionInput').addEventListener('input', ()=>{calculateResult(); drawMiniGraph();});
+document.getElementById('backBtn').addEventListener('click', ()=>{window.location.href='../content/pages/section2.html';});
+
+loadTemplates(); drawMiniGraph();
 </script>
 </body>
 </html>
