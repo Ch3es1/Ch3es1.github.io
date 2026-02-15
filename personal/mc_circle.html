@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minecraft Circle Generator</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #222;
+    color: #fff;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* Back button */
+  #backBtn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #555;
+    border: none;
+    color: #fff;
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+
+  #backBtn:hover {
+    background: #777;
+  }
+
+  h1 {
+    text-align: center;
+  }
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+    max-width: 1000px;
+  }
+
+  .controls label {
+    margin-right: 5px;
+  }
+
+  .controls input, .controls select {
+    width: 100px;
+    padding: 4px;
+    text-align: center;
+    border-radius: 4px;
+    border: none;
+  }
+
+  button {
+    padding: 6px 12px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    background: #4CAF50;
+    color: #fff;
+  }
+
+  button:hover {
+    background: #45a049;
+  }
+
+  #grid-container {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+
+  #grid {
+    display: inline-grid;
+    background: #444;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .cell {
+    position: relative;
+    border: 1px solid #333;
+    box-sizing: border-box;
+  }
+
+  .empty {
+    background: #222;
+  }
+
+  .block {
+    background: #4CAF50;
+  }
+
+  .cell:hover::after {
+    content: attr(data-coords);
+    position: absolute;
+    top: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #000;
+    padding: 2px 5px;
+    font-size: 12px;
+    border-radius: 3px;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  .export-area {
+    width: 90%;
+    max-width: 1000px;
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  textarea {
+    width: 100%;
+    height: 200px;
+    margin-top: 10px;
+    background: #333;
+    color: #fff;
+    border: none;
+    padding: 10px;
+    font-family: monospace;
+    border-radius: 4px;
+  }
+
+</style>
+</head>
+<body>
+
+<button id="backBtn" onclick="window.location='./main.html'">Back</button>
+
+<h1>Minecraft Circle Generator</h1>
+
+<div class="controls">
+  <label>Radius:</label><input type="number" id="radius" value="10" min="1">
+  <label>Center X:</label><input type="number" id="centerX" value="0">
+  <label>Center Y:</label><input type="number" id="centerY" value="64">
+  <label>Center Z:</label><input type="number" id="centerZ" value="0">
+  <label>Block:</label><input type="text" id="blockType" value="minecraft:stone">
+  <label>Relative coords:</label>
+  <select id="relative">
+    <option value="false">No</option>
+    <option value="true">Yes</option>
+  </select>
+  <button onclick="generateCircle()">Generate</button>
+</div>
+
+<!-- Centered grid -->
+<div id="grid-container">
+  <div id="grid"></div>
+</div>
+
+<!-- Export area below the grid -->
+<div class="export-area">
+  <button onclick="exportMCFunction()">Generate .mcfunction</button>
+  <textarea id="output" placeholder="Your Minecraft commands will appear here..." readonly></textarea>
+</div>
+
+<script>
+function generateCircle() {
+  const radius = parseInt(document.getElementById('radius').value);
+  const centerX = parseInt(document.getElementById('centerX').value);
+  const centerZ = parseInt(document.getElementById('centerZ').value);
+  const grid = document.getElementById('grid');
+
+  // Scaling to prevent huge grid
+  const maxCells = 50; // max width in cells
+  let scale = 1;
+  const gridSize = radius * 2 + 1;
+  if (gridSize > maxCells) scale = maxCells / gridSize;
+
+  const size = gridSize;
+  const cellSize = Math.floor(25 * scale);
+
+  grid.style.gridTemplateColumns = `repeat(${size}, ${cellSize}px)`;
+  grid.innerHTML = '';
+
+  for (let z = -radius; z <= radius; z++) {
+    for (let x = -radius; x <= radius; x++) {
+      const distance = Math.sqrt(x*x + z*z);
+      const cell = document.createElement('div');
+      cell.className = 'cell ' + ((distance >= radius - 0.5 && distance <= radius + 0.5) ? 'block' : 'empty');
+      const realX = centerX + x;
+      const realZ = centerZ + z;
+      cell.setAttribute('data-coords', `X: ${realX}, Z: ${realZ}`);
+      cell.style.width = `${cellSize}px`;
+      cell.style.height = `${cellSize}px`;
+      grid.appendChild(cell);
+    }
+  }
+}
+
+function exportMCFunction() {
+  const radius = parseInt(document.getElementById('radius').value);
+  const centerX = parseInt(document.getElementById('centerX').value);
+  const centerY = parseInt(document.getElementById('centerY').value);
+  const centerZ = parseInt(document.getElementById('centerZ').value);
+  const block = document.getElementById('blockType').value || "minecraft:stone";
+  const useRelative = document.getElementById('relative').value === "true";
+
+  let commands = [];
+
+  for (let z = -radius; z <= radius; z++) {
+    for (let x = -radius; x <= radius; x++) {
+      const distance = Math.sqrt(x*x + z*z);
+      if (distance >= radius - 0.5 && distance <= radius + 0.5) {
+        let cmdX = useRelative ? `~${x}` : centerX + x;
+        let cmdY = useRelative ? `~0` : centerY;
+        let cmdZ = useRelative ? `~${z}` : centerZ;
+        commands.push(`setblock ${cmdX} ${cmdY} ${cmdZ} ${block}`);
+      }
+    }
+  }
+
+  document.getElementById('output').value = commands.join('\n');
+}
+
+generateCircle(); // initial display
+</script>
+
+</body>
+</html>
