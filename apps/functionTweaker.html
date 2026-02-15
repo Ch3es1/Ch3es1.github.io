@@ -114,10 +114,22 @@
 
 <script id="templateData" type="application/json">
 {
-    "TEMPLATES": {
-        "Quadratic Function": { "equation": "a*x^2 + b*x + c", "vars": ["a", "b", "c"] },
-        "General Absolute Value Form": { "equation": "A*abs(B*x+C)-D", "vars": ["A", "B", "C", "D"] }
-    }
+  "TEMPLATES": {
+    "Quadratic Function": { "equation": "a*x^2 + b*x + c", "vars": ["a", "b", "c"] },
+    "Cubic Function": { "equation": "a*x^3 + b*x^2 + c*x + d", "vars": ["a", "b", "c", "d"] },
+    "Linear Function": { "equation": "m*x + b", "vars": ["m", "b"] },
+    "Exponential Function": { "equation": "A * exp(B*x)", "vars": ["A", "B"] },
+    "Logarithmic Function": { "equation": "A * log(B*x + C)", "vars": ["A", "B", "C"] },
+    "Sine Wave": { "equation": "A * sin(B*x + C) + D", "vars": ["A", "B", "C", "D"] },
+    "Cosine Wave": { "equation": "A * cos(B*x + C) + D", "vars": ["A", "B", "C", "D"] },
+    "Tangent Function": { "equation": "A * tan(B*x + C) + D", "vars": ["A", "B", "C", "D"] },
+    "Absolute Value Function": { "equation": "A * abs(B*x + C) + D", "vars": ["A", "B", "C", "D"] },
+    "Reciprocal Function": { "equation": "A / (B*x + C) + D", "vars": ["A", "B", "C", "D"] },
+    "Square Root Function": { "equation": "A * sqrt(B*x + C) + D", "vars": ["A", "B", "C", "D"] },
+    "Piecewise Linear": { "equation": "x < C ? A*x + B : D*x + E", "vars": ["A","B","C","D","E"] },
+    "Logistic Function": { "equation": "L / (1 + exp(-k*(x-x0)))", "vars": ["L","k","x0"] },
+    "Gaussian Function": { "equation": "A * exp(-((x-B)^2)/(2*C^2))", "vars": ["A","B","C"] }
+  }
 }
 </script>
 
