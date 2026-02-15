@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Custom Blackjack</title>
+<style>
+body{
+    font-family:Arial;
+    background:#0b3d0b;
+    color:white;
+    text-align:center;
+}
+button{
+    padding:8px 14px;
+    margin:5px;
+    font-size:14px;
+}
+#game{
+    margin-top:20px;
+}
+#settings{
+    position:absolute;
+    top:10px;
+    right:10px;
+    background:#1b5e20;
+    padding:15px;
+    border-radius:8px;
+    text-align:left;
+}
+input, select{
+    margin:3px;
+}
+</style>
+</head>
+<body>
+
+<h1>Blackjack</h1>
+
+<button onclick="window.location='../../content/pages/section1.html'">Go Back</button>
+<p id="money-display">Money: $1000</p>
+
+<div id="bet-area">
+<input type="number" id="betInput" placeholder="Enter Bet">
+<button onclick="submitBet()">Place Bet</button>
+</div>
+
+<div id="game" style="display:none;">
+<h3 id="betDisplay"></h3>
+<h2>Dealer</h2>
+<p id="dealer-hand"></p>
+<p id="dealer-score"></p>
+
+<h2>Player</h2>
+<p id="player-hand"></p>
+<p id="player-score"></p>
+
+<button onclick="hit()">Hit</button>
+<button onclick="stand()">Stand</button>
+<button id="doubleBtn" onclick="doubleDown()">Double</button>
+<button id="splitBtn" onclick="split()">Split</button>
+
+<h2 id="result"></h2>
+<button onclick="restart()">Restart</button>
+</div>
+
+<div id="settings">
+<h3>Settings</h3>
+
+Decks:
+<select id="deckCount">
+<option value="1">1</option>
+<option value="2">2</option>
+<option value="4">4</option>
+<option value="6">6</option>
+<option value="8">8</option>
+</select><br>
+
+Ace Mode:
+<select id="aceMode">
+<option value="auto">Automatic</option>
+<option value="11">Always 11</option>
+<option value="1">Always 1</option>
+</select><br>
+
+Custom Face Cards:
+<select id="customFace">
+<option value="false">No (10)</option>
+<option value="true">Yes</option>
+</select><br>
+
+<div id="faceInputs" style="display:none;">
+J: <input type="number" id="jackValue" value="10"><br>
+Q: <input type="number" id="queenValue" value="10"><br>
+K: <input type="number" id="kingValue" value="10"><br>
+</div>
+
+Blackjack Payout:
+<select id="payout">
+<option value="1.5">3:2</option>
+<option value="1.2">6:5</option>
+<option value="2">2:1</option>
+</select><br>
+
+Dealer hits soft 17:
+<select id="soft17">
+<option value="true">Yes</option>
+<option value="false">No</option>
+</select><br>
+
+Allow Double:
+<select id="doubleRule">
+<option value="true">Yes</option>
+<option value="false">No</option>
+</select><br>
+
+Allow Split:
+<select id="splitRule">
+<option value="true">Yes</option>
+<option value="false">No</option>
+</select><br>
+
+Show Dealer Hand:
+<select id="showDealer">
+<option value="false">No</option>
+<option value="true">Yes</option>
+</select>
+
+</div>
+
+<script>
+let money=1000;
+let deck=[];
+let player=[];
+let dealer=[];
+let currentBet=0;
+let gameOver=false;
+let rules={};
+
+document.getElementById("customFace").addEventListener("change", function(){
+    document.getElementById("faceInputs").style.display =
+        this.value==="true" ? "block":"none";
+});
+
+function updateMoney(){
+    if(money<=-1){
+        money=1000;
+        alert("You went broke! Resetting to $1000.");
+    }
+    document.getElementById("money-display").innerText="Money: $"+money;
+}
+
+function updateActionButtons(){
+
+    const doubleBtn = document.getElementById("doubleBtn");
+    const splitBtn  = document.getElementById("splitBtn");
+
+    if(rules.allowDouble){
+        doubleBtn.style.display = "inline-block";
+    } else{
+        doubleBtn.style.display = "none";
+    }
+
+    if(rules.allowSplit){
+        splitBtn.style.display = "inline-block";
+    } else{
+        splitBtn.style.display = "none";
+    }
+}
+
+function submitBet(){
+    let bet=parseInt(document.getElementById("betInput").value);
+    if(isNaN(bet) || bet<=0) return alert("Invalid bet.");
+    if(bet>money) return alert("You cannot bet more than you own.")
+    money-=bet;
+    currentBet=bet;
+    updateMoney();
+    startRound();
+}
+
+function buildDeck(){
+    deck=[];
+    let suits=["♠","♥","♦","♣"];
+    let values=["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
+    for(let d=0; d<rules.decks; d++){
+        for(let s of suits){
+            for(let v of values){
+                deck.push({value:v,suit:s});
+            }
+        }
+    }
+    deck.sort(()=>Math.random()-0.5);
+}
+
+function startRound(){
+    rules={
+        decks:parseInt(document.getElementById("deckCount").value),
+        aceMode:document.getElementById("aceMode").value,
+        customFace:document.getElementById("customFace").value==="true",
+        jackValue:parseInt(document.getElementById("jackValue").value),
+        queenValue:parseInt(document.getElementById("queenValue").value),
+        kingValue:parseInt(document.getElementById("kingValue").value),
+        payout:parseFloat(document.getElementById("payout").value),
+        soft17:document.getElementById("soft17").value==="true",
+        allowDouble:document.getElementById("doubleRule").value==="true",
+        allowSplit:document.getElementById("splitRule").value==="true",
+        showDealer:document.getElementById("showDealer").value==="true"
+    };
+
+    buildDeck();
+    updateActionButtons();
+
+    player=[deck.pop(),deck.pop()];
+    dealer=[deck.pop(),deck.pop()];
+    gameOver=false;
+
+    document.getElementById("bet-area").style.display="none";
+    document.getElementById("game").style.display="block";
+    document.getElementById("betDisplay").innerText="Bet: $"+currentBet;
+
+    let playerScore = calculateScore(player);
+    let dealerScore = calculateScore(dealer);
+
+    // ✅ Player natural blackjack
+    if(playerScore === 21 && player.length === 2){
+
+        if(dealerScore === 21 && dealer.length === 2){
+            // Push
+            money += currentBet;
+            endGame("Both have Blackjack! Push.");
+        } else{
+            // Blackjack payout
+            let winAmount = currentBet * (1 + rules.payout);
+            money += winAmount;
+            endGame("Blackjack! You win!");
+        }
+
+        updateMoney();
+        updateUI();
+        return;
+    }
+
+    // ✅ Dealer natural blackjack
+    if(dealerScore === 21 && dealer.length === 2){
+        endGame("Dealer has Blackjack! You lose.");
+        updateMoney();
+        updateUI();
+        return;
+    }
+
+    updateUI();
+}
+
+function cardValue(card){
+    if(["J","Q","K"].includes(card.value)){
+        if(rules.customFace){
+            if(card.value==="J") return rules.jackValue;
+            if(card.value==="Q") return rules.queenValue;
+            if(card.value==="K") return rules.kingValue;
+        }
+        return 10;
+    }
+    if(card.value==="A"){
+        if(rules.aceMode==="11") return 11;
+        if(rules.aceMode==="1") return 1;
+        return 11;
+    }
+    return parseInt(card.value);
+}
+
+function calculateScore(hand){
+    let score=0;
+    let aces=0;
+    for(let c of hand){
+        score+=cardValue(c);
+        if(c.value==="A") aces++;
+    }
+    if(rules.aceMode==="auto"){
+        while(score>21 && aces>0){
+            score-=10;
+            aces--;
+        }
+    }
+    return score;
+}
+
+function updateUI(){
+    document.getElementById("player-hand").innerText=
+        player.map(c=>c.value+c.suit).join(" ");
+    document.getElementById("player-score").innerText=
+        "Score: "+calculateScore(player);
+
+    if(gameOver || rules.showDealer){
+        document.getElementById("dealer-hand").innerText=
+            dealer.map(c=>c.value+c.suit).join(" ");
+        document.getElementById("dealer-score").innerText=
+            "Score: "+calculateScore(dealer);
+    } else{
+        document.getElementById("dealer-hand").innerText=
+            dealer[0].value+dealer[0].suit+" ?";
+        document.getElementById("dealer-score").innerText="";
+    }
+}
+
+function hit(){
+    if(gameOver) return;
+    player.push(deck.pop());
+    if(calculateScore(player)>21){
+        endGame("Bust! You lose.");
+    }
+    updateUI();
+}
+
+function stand(){
+    if(gameOver) return;
+    while(calculateScore(dealer)<17 ||
+         (rules.soft17 && calculateScore(dealer)===17)){
+        dealer.push(deck.pop());
+    }
+    finishRound();
+}
+
+function doubleDown(){
+    if(!rules.allowDouble) return alert("Double not allowed.");
+    if(money < currentBet) return alert("Not enough money.");
+
+    money -= currentBet;
+    currentBet *= 2;
+
+    player.push(deck.pop());
+
+    let score = calculateScore(player);
+
+    if(score > 21){
+        endGame("Bust! You lose.");
+        return;
+    }
+
+    // If not bust, dealer plays
+    while(calculateScore(dealer) < 17 ||
+         (rules.soft17 && calculateScore(dealer) === 17)){
+        dealer.push(deck.pop());
+    }
+
+    finishRound();
+}
+
+function split(){
+    if(!rules.allowSplit) return alert("Split not allowed.");
+    if(player.length!==2) return alert("Can only split first turn.");
+    if(player[0].value!==player[1].value) return alert("Cards must match.");
+    if(money<currentBet) return alert("Not enough money.");
+    money-=currentBet;
+    alert("Split performed (basic split logic).");
+}
+
+function finishRound(){
+    let p=calculateScore(player);
+    let d=calculateScore(dealer);
+    if(d>21 || p>d){
+        let win=currentBet*2;
+        if(p===21 && player.length===2)
+            win=currentBet*(1+rules.payout);
+        money+=win;
+        endGame("You win!");
+    }
+    else if(p===d){
+        money+=currentBet;
+        endGame("Push.");
+    }
+    else{
+        endGame("Dealer wins.");
+    }
+}
+
+function endGame(msg){
+    gameOver=true;
+    document.getElementById("result").innerText=msg;
+    updateMoney();
+    updateUI();
+}
+
+function restart(){
+    document.getElementById("game").style.display="none";
+    document.getElementById("bet-area").style.display="block";
+    document.getElementById("result").innerText="";
+}
+</script>
+
+</body>
+</html>
