@@ -10,6 +10,28 @@
     <h1 class="center" style="color: rgb(194, 2, 2);">Ch3es1.github.io HomePage</h1>
 
     <button onclick="window.location='https://github.com/Ch3es1/Ch3es1.github.io'" class="center">Source Code</button>
-    <button onclick="window.location='./content/pages/section1.html'" class="center">Games</button>
+    <button id="gamesButton" onclick="checkGamesAccess()" class="center">Games</button>
     <button onclick="window.location='./content/pages/section2.html'" class="center">Applications</button>
+
+    <script>
+    function checkGamesAccess() {
+        const now = new Date();
+        const day = now.getDay();
+        const hours = now.getHours();
+        const minutes = now.getMinutes();
+
+        const isWeekday = day >= 1 && day <= 5;
+        const currentTime = hours * 60 + minutes;
+        const startTime = 7 * 60 + 45;
+        const endTime = 14 * 60 + 45;
+
+        if (isWeekday && currentTime >= startTime && currentTime <= endTime) {
+            alert("Games are not available between 7:45 AM and 2:45 PM on weekdays.");
+        } else {
+            // Time is okay, proceed to the page
+            window.location = './content/pages/section1.html';
+        }
+    }
+</script>
 </body>
+</html>
