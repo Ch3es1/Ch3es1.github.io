@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Function Tweaker</title>
+<style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: #121212;
+        color: #e0e0e0;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 50px;
+    }
+    .calculator {
+        background: #1e1e1e;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+        width: 650px;
+        position: relative;
+    }
+    input, button {
+        padding: 10px;
+        margin: 5px 0;
+        border-radius: 6px;
+        border: 1px solid #555;
+        font-size: 16px;
+        background: #2c2c2c;
+        color: #e0e0e0;
+    }
+    input::placeholder {
+        color: #aaa;
+    }
+    .variables input {
+        width: calc(100% - 90px);
+        background: #2c2c2c;
+        border: 1px solid #555;
+        color: #e0e0e0;
+    }
+    .variables div {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        margin-bottom: 5px;
+    }
+    .variables button {
+        margin-left: 10px;
+        padding: 0 6px;
+        font-size: 13px;
+        height: 28px;
+        flex-shrink: 0;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+        background: #1e1e1e;
+        color: #e0e0e0;
+    }
+    table, th, td {
+        border: 1px solid #555;
+    }
+    th, td {
+        padding: 8px;
+        text-align: center;
+    }
+    button:hover {
+        background: #007bff;
+        color: white;
+        cursor: pointer;
+        border: none;
+    }
+    #backBtn {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        background: #333;
+        color: #e0e0e0;
+        border: none;
+        border-radius: 6px;
+        padding: 8px 14px;
+        font-size: 14px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        transition: all 0.2s ease;
+        z-index: 1000;
+    }
+    #backBtn:hover {
+        background: #007bff;
+        color: white;
+        transform: scale(1.05);
+    }
+    #docs {
+        margin-top: 20px;
+        background: #2a2a2a;
+        padding: 15px;
+        border-radius: 8px;
+        font-size: 14px;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+    #docs h3 {
+        margin-top: 0;
+        color: #ffffff;
+    }
+    #docs ul {
+        padding-left: 20px;
+    }
+    #docs li {
+        margin-bottom: 4px;
+    }
+</style>
+</head>
+<body>
+<div class="calculator">
+    <button id="backBtn">Back</button>
+    <h2>Function Tweaker</h2>
+    <label>Enter function (supports full Math functions, factorial (!), gcd(a,b), modulo, etc.):</label>
+    <input id="functionInput" placeholder="e.g., sin(x) + cos(y) + abs(z)">
+
+    <h3>Variables</h3>
+    <div class="variables" id="variablesDiv"></div>
+    <button id="addVarBtn">Add Variable</button>
+
+    <h3>x-values Table</h3>
+    <table id="valuesTable">
+        <thead>
+            <tr><th>x</th><th>f(x)</th></tr>
+        </thead>
+        <tbody>
+            <tr><td contenteditable='true'></td><td>-</td></tr>
+        </tbody>
+    </table>
+
+    <div id="docs">
+        <h3>Available Functions & Operations:</h3>
+        <ul>
+            <li>Trig: sin(x), cos(x), tan(x)</li>
+            <li>Exponential & Log: exp(x), log(x)</li>
+            <li>Root & Power: sqrt(x), x^y</li>
+            <li>Rounding: ceil(x), floor(x)</li>
+            <li>Absolute value: abs(x)</li>
+            <li>Random: random()</li>
+            <li>Factorial: n! (e.g., 5!)</li>
+            <li>Greatest common divisor: gcd(a,b)</li>
+            <li>Least common multiple: lcm(a,b)</li>
+            <li>Remainder/modulo: rem(a,b)</li>
+            <li>Variables: define any variable with "Add Variable" and use in function (can also remove)</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+let variables = {};
+
+function addVariable() {
+    let name = prompt("Enter variable name (e.g., y):");
+    if(name && !variables[name]) {
+        variables[name] = 0;
+        renderVariables();
+    }
+}
+
+function removeVariable(name) {
+    delete variables[name];
+    renderVariables();
+}
+
+function renderVariables() {
+    const div = document.getElementById('variablesDiv');
+    div.innerHTML = '';
+    for(let v in variables){
+        const varDiv = document.createElement('div');
+        varDiv.style.display = 'flex';
+        varDiv.style.alignItems = 'center';
+
+        const label = document.createElement('label');
+        label.textContent = v + ': ';
+        label.style.marginRight = '10px';
+
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.value = variables[v];
+        input.onchange = () => updateVariable(v, input.value);
+
+        const removeBtn = document.createElement('button');
+        removeBtn.textContent = 'Remove';
+        removeBtn.style.padding = '0 6px';
+        removeBtn.style.fontSize = '13px';
+        removeBtn.style.height = '24px';
+        removeBtn.onclick = () => removeVariable(v);
+
+        varDiv.appendChild(label);
+        varDiv.appendChild(input);
+        varDiv.appendChild(removeBtn);
+
+        div.appendChild(varDiv);
+    }
+    calculateResult();
+}
+
+function updateVariable(name, value) {
+    variables[name] = parseFloat(value);
+    calculateResult();
+}
+
+function factorial(n) {
+    return n <= 1 ? 1 : n * factorial(n - 1);
+}
+
+function gcd(a,b){
+    a = Math.abs(a); b = Math.abs(b);
+    while(b){ [a,b] = [b,a % b]; }
+    return a;
+}
+
+function lcm(a,b){
+    return Math.abs(a*b)/gcd(a,b);
+}
+
+function rem(a,b){
+    return a % b;
+}
+
+function parseFunction(funcStr) {
+    funcStr = funcStr.replace(/\^/g, '**');
+    funcStr = funcStr.replace(/\bsin\(/g,'Math.sin(')
+                       .replace(/\bcos\(/g,'Math.cos(')
+                       .replace(/\btan\(/g,'Math.tan(')
+                       .replace(/\babs\(/g,'Math.abs(')
+                       .replace(/\bsqrt\(/g,'Math.sqrt(')
+                       .replace(/\blog\(/g,'Math.log(')
+                       .replace(/\bexp\(/g,'Math.exp(')
+                       .replace(/\bceil\(/g,'Math.ceil(')
+                       .replace(/\bfloor\(/g,'Math.floor(')
+                       .replace(/\brandom\(/g,'Math.random(');
+    funcStr = funcStr.replace(/([0-9\)a-zA-Z]+)!/g,'factorial($1)');
+    return funcStr;
+}
+
+function calculateFunction(x) {
+    let funcStr = parseFunction(document.getElementById('functionInput').value);
+    try {
+        let func = new Function('x', ...Object.keys(variables), 'factorial','gcd','lcm','rem', `return ${funcStr};`);
+        return func(x, ...Object.values(variables), factorial, gcd, lcm, rem);
+    } catch(e) {
+        return 'Error';
+    }
+}
+
+function calculateResult() {
+    const tbody = document.getElementById('valuesTable').querySelector('tbody');
+    Array.from(tbody.rows).forEach(row => {
+        let x = parseFloat(row.cells[0].textContent);
+        row.cells[1].textContent = !isNaN(x) ? calculateFunction(x) : '-';
+    });
+    removeEmptyRows();
+}
+
+function addXValueRowIfNeeded() {
+    const tbody = document.getElementById('valuesTable').querySelector('tbody');
+    const lastRow = tbody.rows[tbody.rows.length-1];
+    if(lastRow.cells[0].textContent !== ''){
+        const newRow = document.createElement('tr');
+        newRow.innerHTML = `<td contenteditable='true'></td><td>-</td>`;
+        tbody.appendChild(newRow);
+    }
+}
+
+function removeEmptyRows() {
+    const tbody = document.getElementById('valuesTable').querySelector('tbody');
+    for(let i = tbody.rows.length - 2; i >= 0; i--) {
+        if(tbody.rows[i].cells[0].textContent.trim() === '') {
+            tbody.deleteRow(i);
+        }
+    }
+}
+
+document.getElementById('addVarBtn').addEventListener('click', addVariable);
+document.getElementById('valuesTable').addEventListener('input', function(e){
+    calculateResult();
+    addXValueRowIfNeeded();
+});
+document.getElementById('functionInput').addEventListener('input', calculateResult);
+document.getElementById('backBtn').addEventListener('click', function(){
+    window.location.href = '../content/pages/section2.html';
+});
+</script>
+</body>
+</html>
