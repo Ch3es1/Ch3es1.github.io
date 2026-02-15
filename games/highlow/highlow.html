@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Higher or Lower Advanced</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #1e1e2f;
+    color: white;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.container {
+    background: #2a2a40;
+    padding: 20px;
+    border-radius: 15px;
+    width: 100%;
+    max-width: 420px;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+}
+
+/* Back button fixed */
+.back-btn {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    background: #ff4444;
+    padding: 10px 14px;
+    font-size: 14px;
+}
+
+.back-btn:hover {
+    background: #cc0000;
+}
+
+h2 {
+    margin-top: 10px;
+}
+
+input {
+    padding: 12px;
+    width: 100%;
+    margin: 10px 0;
+    border-radius: 10px;
+    border: none;
+    text-align: center;
+    font-size: 16px; /* prevents zoom on iOS */
+}
+
+button {
+    padding: 12px;
+    width: 100%;
+    margin: 6px 0;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    background: #4CAF50;
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+button:hover {
+    background: #45a049;
+}
+
+.panel {
+    display: none;
+    margin-top: 10px;
+    padding: 12px;
+    background: #1e1e2f;
+    border-radius: 10px;
+}
+
+#message, #attempts, #algoResult {
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+@media (max-width: 400px) {
+    .container {
+        padding: 15px;
+    }
+}
+</style>
+</head>
+<body>
+
+<button class="back-btn" onclick="goBack()">⬅ Back</button>
+
+<div class="container">
+
+<h2>Higher or Lower</h2>
+
+<button onclick="toggleSettings()">⚙ Settings</button>
+<button onclick="switchMode()">Switch Mode</button>
+
+<div id="settingsPanel" class="panel">
+    <p>Set Maximum Number:</p>
+    <input type="number" id="maxNumberInput" min="10" value="100">
+    <button onclick="applySettings()">Apply</button>
+</div>
+
+<p id="modeLabel">Mode: Guessing</p>
+
+<div id="guessMode">
+    <p>Guess between 1 and <span id="maxDisplay">100</span></p>
+    <input type="number" id="guessInput">
+    <button onclick="checkGuess()">Guess</button>
+    <button onclick="resetGame()">Restart</button>
+    <div id="message"></div>
+    <div id="attempts"></div>
+</div>
+
+<div id="algoMode" style="display:none;">
+    <p>Enter a number between 1 and <span id="maxDisplay2">100</span></p>
+    <input type="number" id="algoInput">
+    <button onclick="runAlgorithm()">Run Algorithm</button>
+    <div id="algoResult"></div>
+</div>
+
+</div>
+
+<script>
+let maxNumber = 100;
+let randomNumber = Math.floor(Math.random() * maxNumber) + 1;
+let attemptCount = 0;
+let currentMode = "guess";
+
+function goBack() {
+    window.location='../../content/pages/section1.html';
+}
+
+function toggleSettings() {
+    const panel = document.getElementById("settingsPanel");
+    panel.style.display = panel.style.display === "block" ? "none" : "block";
+}
+
+function applySettings() {
+    const newMax = Number(document.getElementById("maxNumberInput").value);
+    if (newMax >= 10) {
+        maxNumber = newMax;
+        document.getElementById("maxDisplay").textContent = maxNumber;
+        document.getElementById("maxDisplay2").textContent = maxNumber;
+        resetGame();
+    }
+}
+
+function switchMode() {
+    if (currentMode === "guess") {
+        currentMode = "algo";
+        document.getElementById("guessMode").style.display = "none";
+        document.getElementById("algoMode").style.display = "block";
+        document.getElementById("modeLabel").textContent = "Mode: Algorithm Timer";
+    } else {
+        currentMode = "guess";
+        document.getElementById("guessMode").style.display = "block";
+        document.getElementById("algoMode").style.display = "none";
+        document.getElementById("modeLabel").textContent = "Mode: Guessing";
+    }
+}
+
+function checkGuess() {
+    const guess = Number(document.getElementById("guessInput").value);
+    const message = document.getElementById("message");
+    const attempts = document.getElementById("attempts");
+
+    if (!guess || guess < 1 || guess > maxNumber) {
+        message.textContent = "Enter valid number!";
+        return;
+    }
+
+    attemptCount++;
+
+    if (guess === randomNumber) {
+        message.textContent = "🎉 Correct!";
+    } else if (guess < randomNumber) {
+        message.textContent = "Higher!";
+    } else {
+        message.textContent = "Lower!";
+    }
+
+    attempts.textContent = "Attempts: " + attemptCount;
+}
+
+function resetGame() {
+    randomNumber = Math.floor(Math.random() * maxNumber) + 1;
+    attemptCount = 0;
+    document.getElementById("message").textContent = "";
+    document.getElementById("attempts").textContent = "";
+    document.getElementById("guessInput").value = "";
+}
+
+function runAlgorithm() {
+    const target = Number(document.getElementById("algoInput").value);
+    const result = document.getElementById("algoResult");
+
+    if (!target || target < 1 || target > maxNumber) {
+        result.textContent = "Enter valid number!";
+        return;
+    }
+
+    let low = 1;
+    let high = maxNumber;
+    let steps = 0;
+
+    const startTime = performance.now();
+
+    while (low <= high) {
+        steps++;
+        let mid = Math.floor((low + high) / 2);
+
+        if (mid === target) break;
+        else if (mid < target) low = mid + 1;
+        else high = mid - 1;
+    }
+
+    const endTime = performance.now();
+    const timeTaken = (endTime - startTime).toFixed(4);
+
+    result.innerHTML = `
+        Found in ${steps} steps.<br>
+        Time taken: ${timeTaken} ms
+    `;
+}
+</script>
+
+</body>
+</html>
