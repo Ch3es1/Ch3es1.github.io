@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PNG to Minecraft Text Display (Single Entity)</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #1e1e1e;
+    color: #eee;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+  input, button {
+    margin: 5px 0;
+    padding: 8px;
+    font-size: 1rem;
+  }
+  canvas {
+    display: none;
+  }
+</style>
+</head>
+<body>
+<h1>PNG → Single Text Display Generator</h1>
+
+<label>Upload PNG:
+  <input type="file" id="imageInput" accept="image/png">
+</label>
+
+<label>Scale (Minecraft text display scale):
+  <input type="number" id="scaleInput" value="0.5" step="0.05" min="0.1" max="2">
+</label>
+
+<label>Max Width (pixels):
+  <input type="number" id="maxWidthInput" value="50" min="1" max="200">
+</label>
+
+<label>Max Height (pixels):
+  <input type="number" id="maxHeightInput" value="50" min="1" max="200">
+</label>
+
+<button id="generateBtn">Generate mcfunction</button>
+<button id="backBtn">Back</button>
+
+<canvas id="canvas"></canvas>
+
+<script>
+const imageInput = document.getElementById('imageInput');
+const scaleInput = document.getElementById('scaleInput');
+const maxWidthInput = document.getElementById('maxWidthInput');
+const maxHeightInput = document.getElementById('maxHeightInput');
+const generateBtn = document.getElementById('generateBtn');
+const backBtn = document.getElementById('backBtn');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+backBtn.addEventListener('click', () => {
+  window.location='./main.html';
+});
+
+generateBtn.addEventListener('click', () => {
+  if (!imageInput.files[0]) {
+    alert("Please select a PNG image.");
+    return;
+  }
+
+  const file = imageInput.files[0];
+  const img = new Image();
+  img.onload = () => {
+    let maxW = parseInt(maxWidthInput.value);
+    let maxH = parseInt(maxHeightInput.value);
+
+    // Scale down if necessary
+    let w = Math.min(img.width, maxW);
+    let h = Math.min(img.height, maxH);
+
+    canvas.width = w;
+    canvas.height = h;
+    ctx.drawImage(img, 0, 0, w, h);
+
+    const imageData = ctx.getImageData(0, 0, w, h).data;
+    let rows = [];
+
+    for (let y = 0; y < h; y++) {
+      let row = [];
+      for (let x = 0; x < w; x++) {
+        let i = (y * w + x) * 4;
+        let r = imageData[i];
+        let g = imageData[i + 1];
+        let b = imageData[i + 2];
+        let a = imageData[i + 3];
+
+        if (a < 128) {
+          // transparent pixel -> use a space
+          row.push({text:" "});
+        } else {
+          let hex = ((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);
+          row.push({text:"█", color:"#"+hex});
+        }
+      }
+      rows.push(row);
+    }
+
+    // Flatten rows into one JSON array with newlines
+    let textComponent = [];
+    for (let row of rows) {
+      textComponent.push(...row, {text:"\n"});
+    }
+
+    const textJson = JSON.stringify(textComponent);
+
+    // Get scale
+    let scale = parseFloat(scaleInput.value);
+
+    // Build the final summon command
+    const cmd = `summon minecraft:text_display ~ ~ ~ {alignment:"center",background:1073741824,default_background:0b,line_width:100000,see_through:0b,shadow:0b,text_opacity:-1b,text:${textJson},transformation:{left_rotation:[0.0f,0.0f,0.0f,1.0f],right_rotation:[0.0f,0.0f,0.0f,1.0f],scale:[${scale}f,${scale}f,${scale}f],translation:[0.0f,0.0f,0.0f]}}`;
+
+    const blob = new Blob([cmd], {type:'text/plain'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'image.mcfunction';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const reader = new FileReader();
+  reader.onload = e => { img.src = e.target.result; };
+  reader.readAsDataURL(file);
+});
+</script>
+</body>
+</html>
