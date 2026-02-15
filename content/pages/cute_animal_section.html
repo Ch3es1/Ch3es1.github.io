@@ -1,161 +1,154 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Random Animal Generator</title>
+<title>Animal Generator</title>
 
 <style>
-  body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: #121212;
-    color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-  }
+body {
+  margin: 0;
+  font-family: Arial;
+  background: #121212;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
 
-  .container {
-    text-align: center;
-    background: #1e1e2f;
-    padding: 30px;
-    border-radius: 15px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
-    width: 90%;
-    max-width: 500px;
-  }
+.container {
+  background: #1e1e2f;
+  padding: 25px;
+  border-radius: 15px;
+  text-align: center;
+  width: 90%;
+  max-width: 500px;
+}
 
-  select, button {
-    padding: 10px;
-    margin: 8px;
-    border-radius: 8px;
-    border: none;
-    font-size: 16px;
-  }
+select, button {
+  padding: 10px;
+  margin: 8px;
+  border-radius: 8px;
+  border: none;
+  font-size: 16px;
+}
 
-  button {
-    background: #4CAF50;
-    color: white;
-    cursor: pointer;
-  }
+button {
+  background: #4CAF50;
+  color: white;
+  cursor: pointer;
+}
 
-  button:hover {
-    background: #45a049;
-  }
+button:hover {
+  background: #45a049;
+}
 
-  .back-btn {
-    background: #444;
-  }
+.back-btn {
+  background: #444;
+}
 
-  .back-btn:hover {
-    background: #666;
-  }
+img {
+  margin-top: 20px;
+  max-width: 100%;
+  max-height: 400px;
+  border-radius: 12px;
+  display: none;
+  opacity: 0;
+  transition: opacity .3s ease;
+}
 
-  img {
-    margin-top: 20px;
-    max-width: 100%;
-    max-height: 400px;
-    border-radius: 12px;
-    display: none;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
-
-  .loading {
-    margin-top: 15px;
-    color: #aaa;
-  }
-
-  .error {
-    color: #ff4c4c;
-  }
+.status {
+  margin-top: 10px;
+  color: #aaa;
+}
 </style>
 </head>
 <body>
 
 <div class="container">
-  <h2>Random Animal Generator 🐾</h2>
+<h2>Random Animal Generator 🐾</h2>
 
-  <select id="animalSelect">
-    <option value="cat">Cat</option>
-    <option value="dog">Dog</option>
-    <option value="bunny">Bunny</option>
-    <option value="duck">Duck</option>
-    <option value="fox">Fox</option>
-    <option value="lizard">Lizard</option>
-    <option value="shiba">Shiba</option>
-    <option value="koala">Koala</option>
-    <option value="panda">Panda</option>
-    <option value="bird">Bird</option>
-  </select>
+<select id="animalSelect">
+<option value="cat">Cat</option>
+<option value="dog">Dog</option>
+<option value="bunny">Bunny</option>
+<option value="duck">Duck</option>
+<option value="fox">Fox</option>
+<option value="lizard">Lizard</option>
+<option value="shiba">Shiba</option>
+<option value="koala">Koala</option>
+<option value="panda">Panda</option>
+<option value="bird">Bird</option>
+</select>
 
-  <br>
+<br>
 
-  <button onclick="loadAnimal()">Get Animal</button>
-  <button class="back-btn" onclick="goBack()">Back</button>
+<button onclick="loadAnimal()">Get Animal</button>
+<button class="back-btn" onclick="window.location='../../index.html'">Back</button>
 
-  <div class="loading" id="status"></div>
-
-  <img id="animalImage">
+<div class="status" id="status"></div>
+<img id="animalImage">
 </div>
 
 <script>
-async function getRequest(endpoint) {
-  const response = await fetch(endpoint);
-  if (!response.ok) throw new Error("Failed to fetch");
-  return response.json();
-}
-
-function goBack() {
-  window.location='../../index.html';
+async function fetchJSON(url) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Request failed");
+  return res.json();
 }
 
 async function loadAnimal() {
-  const select = document.getElementById("animalSelect");
+  const type = document.getElementById("animalSelect").value;
   const img = document.getElementById("animalImage");
   const status = document.getElementById("status");
 
   img.style.display = "none";
   img.style.opacity = 0;
   status.textContent = "Loading...";
-  status.className = "loading";
 
   try {
-    let imageUrl;
+    let url;
 
-    switch (select.value) {
+    switch (type) {
       case "cat":
-        // Cache buster so it ALWAYS changes
-        imageUrl = "https://cataas.com/cat?timestamp=" + new Date().getTime();
+        url = "https://cataas.com/cat?timestamp=" + Date.now();
         break;
+
       case "dog":
-        imageUrl = (await getRequest("https://dog.ceo/api/breeds/image/random")).message;
+        url = (await fetchJSON("https://dog.ceo/api/breeds/image/random")).message;
         break;
+
       case "bunny":
-        imageUrl = (await getRequest("https://api.bunnies.io/v2/loop/random/?media=gif,png")).media.poster;
+        url = (await fetchJSON("https://api.bunnies.io/v2/loop/random/?media=gif,png")).media.poster;
         break;
+
       case "duck":
-        imageUrl = (await getRequest("https://random-d.uk/api/v1/random?type=png")).url;
+        url = (await fetchJSON("https://random-d.uk/api/v2/random")).url;
         break;
+
       case "fox":
-        imageUrl = (await getRequest("https://randomfox.ca/floof/")).image;
+        url = (await fetchJSON("https://randomfox.ca/floof/")).image;
         break;
+
       case "lizard":
-        imageUrl = (await getRequest("https://nekos.life/api/v2/img/lizard")).url;
+        url = (await fetchJSON("https://nekos.life/api/v2/img/lizard")).url;
         break;
+
       case "shiba":
-        imageUrl = (await getRequest("https://shibe.online/api/shibes"))[0];
+        url = (await fetchJSON("https://shibe.online/api/shibes?count=1&urls=true"))[0];
         break;
+
       case "koala":
-        imageUrl = (await getRequest("https://some-random-api.ml/img/koala")).link;
+        url = (await fetchJSON("https://some-random-api.com/animal/koala")).image;
         break;
+
       case "panda":
-        imageUrl = (await getRequest("https://some-random-api.ml/img/panda")).link;
+        url = (await fetchJSON("https://some-random-api.com/animal/panda")).image;
         break;
+
       case "bird":
-        imageUrl = (await getRequest("https://some-random-api.ml/img/birb")).link;
+        url = (await fetchJSON("https://some-random-api.com/animal/bird")).image;
         break;
     }
 
@@ -165,11 +158,10 @@ async function loadAnimal() {
       status.textContent = "";
     };
 
-    img.src = imageUrl;
+    img.src = url;
 
-  } catch (error) {
-    status.textContent = "Error loading image.";
-    status.className = "error";
+  } catch (err) {
+    status.textContent = "API error. Try again.";
   }
 }
 </script>
