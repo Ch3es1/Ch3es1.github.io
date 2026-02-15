@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Random Animal Generator</title>
+
+<style>
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #121212;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+
+  .container {
+    text-align: center;
+    background: #1e1e2f;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    width: 90%;
+    max-width: 500px;
+  }
+
+  select, button {
+    padding: 10px;
+    margin: 8px;
+    border-radius: 8px;
+    border: none;
+    font-size: 16px;
+  }
+
+  button {
+    background: #4CAF50;
+    color: white;
+    cursor: pointer;
+  }
+
+  button:hover {
+    background: #45a049;
+  }
+
+  .back-btn {
+    background: #444;
+  }
+
+  .back-btn:hover {
+    background: #666;
+  }
+
+  img {
+    margin-top: 20px;
+    max-width: 100%;
+    max-height: 400px;
+    border-radius: 12px;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .loading {
+    margin-top: 15px;
+    color: #aaa;
+  }
+
+  .error {
+    color: #ff4c4c;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Random Animal Generator 🐾</h2>
+
+  <select id="animalSelect">
+    <option value="cat">Cat</option>
+    <option value="dog">Dog</option>
+    <option value="bunny">Bunny</option>
+    <option value="duck">Duck</option>
+    <option value="fox">Fox</option>
+    <option value="lizard">Lizard</option>
+    <option value="shiba">Shiba</option>
+    <option value="koala">Koala</option>
+    <option value="panda">Panda</option>
+    <option value="bird">Bird</option>
+  </select>
+
+  <br>
+
+  <button onclick="loadAnimal()">Get Animal</button>
+  <button class="back-btn" onclick="goBack()">Back</button>
+
+  <div class="loading" id="status"></div>
+
+  <img id="animalImage">
+</div>
+
+<script>
+async function getRequest(endpoint) {
+  const response = await fetch(endpoint);
+  if (!response.ok) throw new Error("Failed to fetch");
+  return response.json();
+}
+
+function goBack() {
+  window.location='../../index.html';
+}
+
+async function loadAnimal() {
+  const select = document.getElementById("animalSelect");
+  const img = document.getElementById("animalImage");
+  const status = document.getElementById("status");
+
+  img.style.display = "none";
+  img.style.opacity = 0;
+  status.textContent = "Loading...";
+  status.className = "loading";
+
+  try {
+    let imageUrl;
+
+    switch (select.value) {
+      case "cat":
+        // Cache buster so it ALWAYS changes
+        imageUrl = "https://cataas.com/cat?timestamp=" + new Date().getTime();
+        break;
+      case "dog":
+        imageUrl = (await getRequest("https://dog.ceo/api/breeds/image/random")).message;
+        break;
+      case "bunny":
+        imageUrl = (await getRequest("https://api.bunnies.io/v2/loop/random/?media=gif,png")).media.poster;
+        break;
+      case "duck":
+        imageUrl = (await getRequest("https://random-d.uk/api/v1/random?type=png")).url;
+        break;
+      case "fox":
+        imageUrl = (await getRequest("https://randomfox.ca/floof/")).image;
+        break;
+      case "lizard":
+        imageUrl = (await getRequest("https://nekos.life/api/v2/img/lizard")).url;
+        break;
+      case "shiba":
+        imageUrl = (await getRequest("https://shibe.online/api/shibes"))[0];
+        break;
+      case "koala":
+        imageUrl = (await getRequest("https://some-random-api.ml/img/koala")).link;
+        break;
+      case "panda":
+        imageUrl = (await getRequest("https://some-random-api.ml/img/panda")).link;
+        break;
+      case "bird":
+        imageUrl = (await getRequest("https://some-random-api.ml/img/birb")).link;
+        break;
+    }
+
+    img.onload = () => {
+      img.style.display = "block";
+      img.style.opacity = 1;
+      status.textContent = "";
+    };
+
+    img.src = imageUrl;
+
+  } catch (error) {
+    status.textContent = "Error loading image.";
+    status.className = "error";
+  }
+}
+</script>
+
+</body>
+</html>
