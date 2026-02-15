@@ -145,9 +145,6 @@
         <label>Spell Check:
             <input type="checkbox" id="spellCheck" checked>
         </label>
-        <label>Dark Mode:
-            <input type="checkbox" id="darkMode" checked>
-        </label>
     </div>
 </div>
 
@@ -263,13 +260,11 @@ const fontSizeInput = document.getElementById('fontSize');
 const fontFamilySelect = document.getElementById('fontFamily');
 const bgColorInput = document.getElementById('bgColor');
 const spellCheckInput = document.getElementById('spellCheck');
-const darkModeInput = document.getElementById('darkMode');
 
 fontSizeInput.addEventListener('input', () => editor.style.fontSize = fontSizeInput.value+'px');
 fontFamilySelect.addEventListener('change', () => editor.style.fontFamily = fontFamilySelect.value);
 bgColorInput.addEventListener('input', () => { editor.style.backgroundColor = bgColorInput.value; updateTextColor(bgColorInput.value); });
 spellCheckInput.addEventListener('change', () => editor.spellcheck = spellCheckInput.checked);
-darkModeInput.addEventListener('change', () => document.body.classList.toggle('dark-mode', darkModeInput.checked));
 
 // Ctrl+S
 document.addEventListener('keydown', e => {
