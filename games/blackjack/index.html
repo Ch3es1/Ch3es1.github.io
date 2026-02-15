@@ -41,6 +41,7 @@ input, select{
 <div id="bet-area">
 <input type="number" id="betInput" placeholder="Enter Bet">
 <button onclick="submitBet()">Place Bet</button>
+<button onclick="allIn()">All In</button>
 </div>
 
 <div id="game" style="display:none;">
@@ -141,11 +142,16 @@ document.getElementById("customFace").addEventListener("change", function(){
 });
 
 function updateMoney(){
-    if(money<=-1){
-        money=1000;
-        alert("You went broke! Resetting to $1000.");
-    }
     document.getElementById("money-display").innerText="Money: $"+money;
+}
+
+function allIn(){
+    if(money <= 0){
+        alert("You have no money to go all in.");
+        return;
+    }
+
+    document.getElementById("betInput").value = money;
 }
 
 function updateActionButtons(){
@@ -372,11 +378,22 @@ function finishRound(){
 }
 
 function endGame(msg){
-    gameOver=true;
-    document.getElementById("result").innerText=msg;
+    gameOver = true;
+    document.getElementById("result").innerText = msg;
+
     updateMoney();
     updateUI();
+
+    if(money === 0){
+        setTimeout(() => {
+            alert("You went broke! Resetting to $1000.");
+            money = 1000;
+            updateMoney();
+        }, 1000);
+        restart();
+    }
 }
+
 
 function restart(){
     document.getElementById("game").style.display="none";
