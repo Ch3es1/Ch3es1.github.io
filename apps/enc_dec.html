@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Encryption / Decryption Tool</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #121212;
+      color: #f0f0f0;
+      padding: 20px;
+    }
+    textarea, input, select {
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 8px;
+      background-color: #1e1e1e;
+      color: #f0f0f0;
+      border: 1px solid #333;
+      border-radius: 5px;
+    }
+    button {
+      padding: 8px 16px;
+      margin-right: 5px;
+      background-color: #333;
+      color: #f0f0f0;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #555;
+    }
+    h2, h3 { margin-top: 20px; }
+    .field-container {
+      position: relative;
+    }
+    .copy-btn, .paste-btn, .clear-btn {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      padding: 5px 10px;
+      font-size: 12px;
+      background-color: #444;
+    }
+    .paste-btn { right: 60px; }
+    .clear-btn { right: 120px; }
+    .copy-btn:hover, .paste-btn:hover, .clear-btn:hover {
+      background-color: #666;
+    }
+  </style>
+</head>
+<body>
+  <h2>Encryption / Decryption</h2>
+
+  <div class="field-container">
+    <textarea id="message" rows="5" placeholder="Enter your message here"></textarea>
+    <button class="clear-btn" onclick="clearText('message')">Clear</button>
+    <button class="paste-btn" onclick="pasteFromClipboard('message')">Paste</button>
+    <button class="copy-btn" onclick="copyToClipboard('message')">Copy</button>
+  </div>
+
+  <select id="encryptionType" onchange="updatePasswordPlaceholder()">
+    <option value="xor">XOR Cipher (string password)</option>
+    <option value="caesar">Caesar Cipher (number password)</option>
+    <option value="reverse">Reverse Cipher (no password)</option>
+    <option value="rot13">ROT13 Cipher (no password)</option>
+    <option value="atbash">Atbash Cipher (no password)</option>
+    <option value="base64">Base64 (no password)</option>
+    <option value="vigenere">Vigenère Cipher (string password)</option>
+  </select>
+
+  <input type="text" id="password" placeholder="Enter password (if required)">
+
+  <br>
+  <button onclick="encryptMessage()">Encrypt</button>
+  <button onclick="decryptMessage()">Decrypt</button>
+  <button onclick="goBack()">Back</button>
+
+  <h3>Output:</h3>
+  <div class="field-container">
+    <textarea id="output" rows="5" readonly></textarea>
+    <button class="copy-btn" onclick="copyToClipboard('output')">Copy</button>
+  </div>
+
+  <script>
+    // Clipboard functions
+    function copyToClipboard(id) {
+      const el = document.getElementById(id);
+      el.select();
+      el.setSelectionRange(0, 99999);
+      document.execCommand("copy");
+      alert("Copied to clipboard!");
+    }
+
+    async function pasteFromClipboard(id) {
+      try {
+        const text = await navigator.clipboard.readText();
+        document.getElementById(id).value = text;
+      } catch (err) {
+        alert("Failed to paste from clipboard!");
+      }
+    }
+
+    function clearText(id) {
+      document.getElementById(id).value = "";
+    }
+
+    // Update password placeholder/visibility
+    function updatePasswordPlaceholder() {
+      const type = document.getElementById('encryptionType').value;
+      const pwdInput = document.getElementById('password');
+      if (type === 'xor') {
+        pwdInput.placeholder = "Enter string password for XOR";
+        pwdInput.style.display = "block";
+      } else if (type === 'caesar') {
+        pwdInput.placeholder = "Enter numeric password for Caesar";
+        pwdInput.style.display = "block";
+      } else if (type === 'vigenere') {
+        pwdInput.placeholder = "Enter string password for Vigenère";
+        pwdInput.style.display = "block";
+      } else {
+        pwdInput.placeholder = "(No password required)";
+        pwdInput.value = "";
+        pwdInput.style.display = "none";
+      }
+    }
+
+    // XOR Cipher
+    function xorEncryptDecrypt(text, password) {
+      let result = '';
+      for (let i = 0; i < text.length; i++) {
+        const charCode = text.charCodeAt(i) ^ password.charCodeAt(i % password.length);
+        result += String.fromCharCode(charCode);
+      }
+      return result;
+    }
+
+    // Caesar Cipher
+    function caesarEncrypt(text, shift) {
+      return text.split('').map(char => String.fromCharCode(char.charCodeAt(0) + shift)).join('');
+    }
+    function caesarDecrypt(text, shift) {
+      return text.split('').map(char => String.fromCharCode(char.charCodeAt(0) - shift)).join('');
+    }
+
+    // Reverse Cipher
+    function reverseCipher(text) {
+      return text.split('').reverse().join('');
+    }
+
+    // ROT13 Cipher
+    function rot13(text) {
+      return text.replace(/[a-zA-Z]/g, function(c){
+        const base = c <= "Z" ? 65 : 97;
+        return String.fromCharCode(((c.charCodeAt(0) - base + 13) % 26) + base);
+      });
+    }
+
+    // Atbash Cipher
+    function atbash(text) {
+      return text.replace(/[a-zA-Z]/g, function(c){
+        const base = c <= "Z" ? 65 : 97;
+        return String.fromCharCode(base + (25 - (c.charCodeAt(0) - base)));
+      });
+    }
+
+    // Base64
+    function base64Encode(text) { return btoa(text); }
+    function base64Decode(text) { return atob(text); }
+
+    // Vigenère Cipher
+    function vigenereEncrypt(text, password) {
+      let result = '';
+      for (let i = 0, j = 0; i < text.length; i++) {
+        const c = text.charCodeAt(i);
+        const p = password.charCodeAt(j % password.length);
+        result += String.fromCharCode((c + p) % 256);
+        j++;
+      }
+      return result;
+    }
+
+    function vigenereDecrypt(text, password) {
+      let result = '';
+      for (let i = 0, j = 0; i < text.length; i++) {
+        const c = text.charCodeAt(i);
+        const p = password.charCodeAt(j % password.length);
+        result += String.fromCharCode((c - p + 256) % 256);
+        j++;
+      }
+      return result;
+    }
+
+    function encryptMessage() {
+      const message = document.getElementById('message').value;
+      const password = document.getElementById('password').value;
+      const type = document.getElementById('encryptionType').value;
+
+      if (!message) { alert("Enter a message!"); return; }
+
+      let encrypted = '';
+      try {
+        switch(type) {
+          case 'xor':
+            if (!password) { alert("Enter a password for XOR!"); return; }
+            encrypted = btoa(xorEncryptDecrypt(message, password));
+            break;
+          case 'caesar':
+            if (!password || isNaN(parseInt(password))) { alert("Enter a numeric password for Caesar!"); return; }
+            encrypted = caesarEncrypt(message, parseInt(password));
+            break;
+          case 'reverse':
+            encrypted = reverseCipher(message);
+            break;
+          case 'rot13':
+            encrypted = rot13(message);
+            break;
+          case 'atbash':
+            encrypted = atbash(message);
+            break;
+          case 'base64':
+            encrypted = base64Encode(message);
+            break;
+          case 'vigenere':
+            if (!password) { alert("Enter a password for Vigenère!"); return; }
+            encrypted = btoa(vigenereEncrypt(message, password));
+            break;
+        }
+        document.getElementById('output').value = encrypted;
+      } catch (e) {
+        alert("Error encrypting message!");
+      }
+    }
+
+    function decryptMessage() {
+      const encrypted = document.getElementById('message').value;
+      const password = document.getElementById('password').value;
+      const type = document.getElementById('encryptionType').value;
+
+      if (!encrypted) { alert("Enter a message!"); return; }
+
+      let decrypted = '';
+      try {
+        switch(type) {
+          case 'xor':
+            if (!password) { alert("Enter a password for XOR!"); return; }
+            decrypted = xorEncryptDecrypt(atob(encrypted), password);
+            break;
+          case 'caesar':
+            if (!password || isNaN(parseInt(password))) { alert("Enter a numeric password for Caesar!"); return; }
+            decrypted = caesarDecrypt(encrypted, parseInt(password));
+            break;
+          case 'reverse':
+            decrypted = reverseCipher(encrypted);
+            break;
+          case 'rot13':
+            decrypted = rot13(encrypted);
+            break;
+          case 'atbash':
+            decrypted = atbash(encrypted);
+            break;
+          case 'base64':
+            decrypted = base64Decode(encrypted);
+            break;
+          case 'vigenere':
+            if (!password) { alert("Enter a password for Vigenère!"); return; }
+            decrypted = vigenereDecrypt(atob(encrypted), password);
+            break;
+        }
+        document.getElementById('output').value = decrypted;
+      } catch (e) {
+        alert("Invalid input or password!");
+      }
+    }
+
+    function goBack() {
+      window.location.href = '../content/pages/section2.html';
+    }
+
+    // Initialize password field visibility
+    updatePasswordPlaceholder();
+  </script>
+</body>
+</html>
