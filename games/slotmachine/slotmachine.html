@@ -112,10 +112,11 @@
         document.getElementById("money").textContent = `💰 Money: $${money}`;
     }
 
-    function playSound(id) {
+    function playSound(id, volume=0.5) {
         const sound = document.getElementById(id);
         if (sound) {
             sound.currentTime = 0; // rewind to start
+            sound.volume = volume; // set volume
             sound.play().catch(err => {
                 console.log("Sound failed to play:", err);
             });
